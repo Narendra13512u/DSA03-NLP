@@ -1,0 +1,52 @@
+class Grammar:
+    def __init__(self, productions):
+        self.productions = productions
+
+    def get_productions(self, non_terminal):
+        return self.productions.get(non_terminal, [])
+
+class Parser:
+    def __init__(self, grammar):
+        self.grammar = grammar
+
+    def parse(self, input_str):
+        self.input = input_str
+        self.index = 0
+        self.tokens = self.input.split()
+        self.tokens.append('$')  # $ signifies end of input
+        self.current_token = self.tokens[self.index]
+        self.parse_non_terminal('S')  # Start parsing from the start symbol
+
+    def parse_non_terminal(self, non_terminal):
+        productions = self.grammar.get_productions(non_terminal)
+        for production in productions:
+            if self.match_production(production):
+                return True
+        print("Parsing Error: No production found for non-terminal '{}'".format(non_terminal))
+
+    def match_production(self, production):
+        for symbol in production:
+            if symbol.isupper():  # Non-terminal
+                if not self.parse_non_terminal(symbol):
+                    return False
+            elif symbol == self.current_token:
+                self.consume_token()
+            else:
+                print("Parsing Error: Expected '{}', found '{}'".format(symbol, self.current_token))
+                return False
+        return True
+
+    def consume_token(self):
+        self.index += 1
+        self.current_token = self.tokens[self.index]
+
+# Example Usage:
+productions = {
+    'S': [['A', 'B'], ['B']],
+    'A': [['a']],
+    'B': [['b']]
+}
+
+grammar = Grammar(productions)
+parser = Parser(grammar)
+parser.parse("a b")
