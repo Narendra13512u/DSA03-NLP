@@ -1,0 +1,57 @@
+class FOPC_Parser:
+    def __init__(self):
+        self.tokens = []
+        self.current_token = None
+        self.pos = 0
+
+    def tokenize(self, expression):
+        self.tokens = expression.split()
+
+    def parse(self, expression):
+        self.tokenize(expression)
+        self.pos = 0
+        self.current_token = self.tokens[self.pos]
+        result = self.expression()
+        if self.pos < len(self.tokens):
+            raise SyntaxError("Unexpected tokens after the end of the expression")
+        return result
+
+    def expression(self):
+        if self.current_token == '(':
+            self.consume('(')
+            result = self.expression()
+            self.consume(')')
+            return result
+        elif self.current_token == '¬':
+            self.consume('¬')
+            return ('¬', self.expression())
+        elif self.current_token.isalpha():
+            atom = self.current_token
+            self.consume(atom)
+            return atom
+        else:
+            raise SyntaxError("Unexpected token: {}".format(self.current_token))
+
+    def consume(self, expected_token):
+        if self.current_token == expected_token:
+            self.advance()
+        else:
+            raise SyntaxError("Expected token '{}' but found '{}'".format(expected_token, self.current_token))
+
+    def advance(self):
+        self.pos += 1
+        if self.pos < len(self.tokens):
+            self.current_token = self.tokens[self.pos]
+        else:
+            self.current_token = None
+
+if __name__ == "__main__":
+    parser = FOPC_Parser()
+
+    # Example usage
+    expression = "P(x) ∧ Q(y) → R(z)"
+    try:
+        parsed_expression = parser.parse(expression)
+        print("Parsed expression:", parsed_expression)
+    except SyntaxError as e:
+        print("Syntax error:", e)
